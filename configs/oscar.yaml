@@ -14,7 +14,7 @@ right_marker: "fiducial_11"
 
 # the upper lower limit of the cmd_vel output
 linear_vel_range: [-0.15, 0.15]
-angular_vel_range: [-0.215, 0.15]
+angular_vel_range: [-0.15, 0.15]
 
 # Absolute vel profile
 # min (ang and linear) vel here means the min cmd_vel before the robot stalls
