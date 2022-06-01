@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install \
 
 # install osrf autodock
 RUN mkdir -p /root/catkin_ws/src && cd /root/catkin_ws/src  && \
-  git clone https://github.com/osrf/autodock
+  git clone https://github.com/cognicept-admin/autodock
 
 RUN rm -rf /root/catkin_ws/src/autodock/autodock_sim
 
