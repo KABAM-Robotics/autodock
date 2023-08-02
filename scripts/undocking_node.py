@@ -15,7 +15,7 @@ class UndockState(Enum):
 
 class UndockStateMachine:
     def __init__(self, sleep_period):
-        self.exe = RobotUndockExecutor()
+        self.exe = UndockExecutor()
         self.state = UndockState.IDLE
         self.sleep_period = sleep_period
 
@@ -66,7 +66,7 @@ class UndockStateMachine:
         # TODO - retry discharge and moving again
         print("Retry")
 
-class RobotUndockExecutor:
+class UndockExecutor:
     def __init__(self):
         self.is_undock_srv_triggered = False
         self.is_battery_stop_charge = False
