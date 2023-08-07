@@ -79,7 +79,6 @@ class UndockExecutor:
             res = undock_trigger()
             rospy.loginfo(f"Trigger stop charging srv, success: [{res.success}] | msg: {res.message}")
             if not res.success:
-                rospy.logerr("Stop charging failed")
                 return False
         except rospy.ServiceException as e:
             rospy.logerr(f"Stop charging call failed: {e}")
@@ -128,21 +127,20 @@ class UndockStateMachine(UndockExecutor):
         # wait until the the batteryState to uint8 POWER_SUPPLY_STATUS_NOT_CHARGING = 3
         # Or fail when Battery state is not in NOT_CHARGING state for more than 20 seconds.
         rospy.loginfo("Do Stop Charging")
-        if self.trigger_discharge():
-            wait_for_sec = 20
-            self.set_undock_state(UndockState.DISCHARGE)
-            while (not self.is_battery_stop_charge) and wait_for_sec > 0:
-                if self.state == UndockState.CANCELLED:
-                    return False
-                rospy.sleep(1)
-                wait_for_sec = wait_for_sec - 1
-            if self.is_battery_stop_charge:
-                rospy.loginfo("Successfully stop charging")
-                return True
-            else:
-                rospy.logwarn("Charging is not stopped within 20 secs")
+        self.trigger_discharge()
+        wait_for_sec = 20
+        self.set_undock_state(UndockState.DISCHARGE)
+        while (not self.is_battery_stop_charge) and wait_for_sec > 0:
+            rospy.loginfo("Waiting for charge to stop")
+            if self.state == UndockState.CANCELLED:
                 return False
+            rospy.sleep(1)
+            wait_for_sec = wait_for_sec - 1
+        if self.is_battery_stop_charge:
+            rospy.loginfo("Successfully stop charging")
+            return True
         else:
+            rospy.logwarn("Charging is not stopped within 20 secs")
             return False
     
     def do_moving(self):
