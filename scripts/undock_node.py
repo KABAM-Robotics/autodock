@@ -130,13 +130,14 @@ class UndockStateMachine(UndockExecutor):
         self.trigger_discharge()
         wait_for_sec = 20
         self.set_undock_state(UndockState.DISCHARGE)
-        while (not self.is_battery_stop_charge) and wait_for_sec > 0:
+        while ((not self.is_battery_stop_charge) and (wait_for_sec > 0)
+            and self.state != UndockState.CANCELLED):
             rospy.loginfo("Waiting for charge to stop")
-            if self.state == UndockState.CANCELLED:
-                return False
             rospy.sleep(1)
             wait_for_sec = wait_for_sec - 1
-        if self.is_battery_stop_charge:
+        if self.state == UndockState.CANCELLED:
+            return False
+        elif self.is_battery_stop_charge:
             rospy.loginfo("Successfully stop charging")
             return True
         else:
