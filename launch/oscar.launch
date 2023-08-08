@@ -55,6 +55,9 @@
       args="-d $(find autodock_kabam)/rviz/oscar.rviz" />
   </group>
 
+  <!-- Undock service-->
+  <include file="$(find autodock_kabam)/launch/undock.launch" />
+
   <!-- tf to place the camera to the correct tf frame -->
   <node pkg="tf2_ros" 
         type="static_transform_publisher"
