@@ -2,9 +2,12 @@
 import rospy
 from enum import Enum
 from std_srvs.srv import Trigger, TriggerResponse
+import numpy as np
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import BatteryState
 from actionlib_msgs.msg import GoalStatusArray, GoalStatus, GoalID
+from nav_msgs.msg import Odometry
+import autodock_core.autodock_utils as utils
 
 class UndockState(Enum):
     IDLE = 0
@@ -34,6 +37,20 @@ class UndockExecutor:
         rospy.loginfo("Enable undocking")
         self.is_undock_srv_triggered = True
         return TriggerResponse(success=True)
+    
+    def get_odom(self) -> np.ndarray:
+        """
+        Get the current odom of the robot
+        :return : 4x4 homogenous matrix, None if not avail
+        """
+        try:
+            return utils.get_mat_from_odom_msg(
+                rospy.wait_for_message(
+                    "/odom", Odometry, timeout=1.0)
+            )
+        except rospy.exceptions.ROSException:
+            rospy.logerr(f"Failed to get odom")
+            return None
 
     def set_undock_state(self, state):
         # This function to set the undock state
@@ -135,9 +152,9 @@ class UndockStateMachine(UndockExecutor):
             rospy.loginfo("Waiting for charge to stop")
             rospy.sleep(1)
             wait_for_sec = wait_for_sec - 1
-        if self.state == UndockState.CANCELLED:
-            return False
-        elif self.is_battery_stop_charge:
+            if self.state == UndockState.CANCELLED:
+                return False
+        if self.is_battery_stop_charge:
             rospy.loginfo("Successfully stop charging")
             return True
         else:
@@ -149,12 +166,41 @@ class UndockStateMachine(UndockExecutor):
         # ignoring cancellation for this state
         rospy.loginfo("Do Moving")
         self.set_undock_state(UndockState.MOVE_OUT_DOCK)
-        for i in range(5):
+        _initial_tf = self.get_odom()
+        if _initial_tf is None:
+            return False
+        # get the tf mat from odom to goal frame
+        _goal_tf = utils.apply_2d_transform(_initial_tf, (0.5, 0, 0))
+        action_success = None
+        time_init = rospy.Time.now()
+        _duration = 0
+        while action_success == None and _duration <= 60:
+            if self.state == UndockState.CANCELLED:
+                action_success = False
+                break
+
+            _curr_tf = self.get_odom()
+            if _curr_tf is None:
+                action_success = False
+                break
+
+            dx, dy, dyaw = utils.compute_tf_diff(_curr_tf, _goal_tf)
+            
+            if dx < 0:
+                rospy.loginfo("Done with move robot")
+                action_success = True
+                break
+
             self.publish_cmd(linear_vel=0.1)
-            rospy.sleep(1)
+            _duration = rospy.Time.to_sec(rospy.Time.now() - time_init)
+            rospy.sleep(0.1)
+        if action_success == None:
+            rospy.logwarn("Timeout for moving robot from dock")
+            action_success = False
         # Stop the moving
         self.publish_cmd()
-        return True
+        return action_success
+    
 
 
 if __name__ == "__main__":
