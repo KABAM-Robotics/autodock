@@ -106,6 +106,7 @@ class UndockExecutor:
                 return False
         except rospy.ServiceException as e:
             rospy.logerr(f"Stop charging call failed: {e}")
+            self.is_battery_stop_charge = None
             return False
 
     def publish_cmd(self, linear_vel=0.0, angular_vel=0.0):
