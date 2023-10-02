@@ -34,6 +34,7 @@ class UndockExecutor:
     def init_param(self):
         self.retry_count = 1
         self.is_undock_srv_triggered = False
+        self.set_undock_state(UndockState.IDLE)
         self.battery_state_topic = rospy.get_param("/simple_autodock/battery_state_topic","/xnergy_charger_rcu/battery_state")
         self.cmd_vel_topic = rospy.get_param("/simple_autodock/cmd_vel_topic","/kopilot_user_cmd")
         self.undock_distance = rospy.get_param("/simple_autodock/undock_distance",0.5)
