@@ -22,16 +22,23 @@ class UndockExecutor:
         self.is_undock_srv_triggered = False
         self.is_battery_stop_charge = False
         self.state = UndockState.IDLE
-        battery_state_topic = rospy.get_param("~battery_state_topic","/xnergy_charger_rcu/battery_state")
-        cmd_vel_topic = rospy.get_param("~cmd_vel_topic","/kopilot_user_cmd")
-        self.trigger_stop_charge_srv = rospy.get_param("~trigger_stop_charge_srv","/xnergy_charger_rcu/trigger_stop")
+        self.init_param()
         
         # Setup ros part
-        self.xnergy_state_sub = rospy.Subscriber(battery_state_topic, BatteryState, self.check_discharge)
-        self.cmd_kopilot_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=10)
+        self.xnergy_state_sub = rospy.Subscriber(self.battery_state_topic, BatteryState, self.check_discharge)
+        self.cmd_kopilot_pub = rospy.Publisher(self.cmd_vel_topic, Twist, queue_size=10)
         self.undock_service = rospy.Service('~trigger', Trigger, self.handle_undock_request)
         self.undock_status_pub = rospy.Publisher('~status', GoalStatusArray, queue_size=10)
         self.undock_cancel_sub = rospy.Subscriber('~cancel', GoalID, self.handle_undock_cancel)
+
+    def init_param(self):
+        self.retry_count = 1
+        self.is_undock_srv_triggered = False
+        self.battery_state_topic = rospy.get_param("/simple_autodock/battery_state_topic","/xnergy_charger_rcu/battery_state")
+        self.cmd_vel_topic = rospy.get_param("/simple_autodock/cmd_vel_topic","/kopilot_user_cmd")
+        self.undock_distance = rospy.get_param("/simple_autodock/undock_distance",0.5)
+        self.trigger_stop_charge_srv = rospy.get_param("/simple_autodock/trigger_stop_charge_srv","/xnergy_charger_rcu/trigger_stop")
+        self.retry_times = rospy.get_param("/simple_autodock/retry_count", 3)
 
     def handle_undock_request(self, req):
         rospy.loginfo("Enable undocking")
@@ -113,11 +120,6 @@ class UndockStateMachine(UndockExecutor):
         super(UndockStateMachine,self).__init__()
         rate = rospy.get_param("~rate", 1.0)         # default 1hz
         self.sleep_period = rospy.Rate(rate)
-        self.init_param()
-        
-    def init_param(self):
-        self.retry_count = 1
-        self.is_undock_srv_triggered = False
 
     def start(self):
         while not rospy.is_shutdown():
@@ -132,7 +134,7 @@ class UndockStateMachine(UndockExecutor):
                     self.init_param()
                 else:
                     self.retry_count += 1
-                    if self.retry_count > 3:
+                    if self.retry_count > self.retry_count:
                         self.set_undock_state(UndockState.FAILED)
                         # init_param
                         self.init_param()
@@ -205,5 +207,6 @@ class UndockStateMachine(UndockExecutor):
 
 if __name__ == "__main__":
     rospy.init_node("undock_node", disable_signals=True)
+    rospy.loginfo("Starting Undock Server Node")
     node = UndockStateMachine()
     node.start()
