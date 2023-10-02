@@ -21,12 +21,17 @@ class UndockExecutor:
     def __init__(self):
         self.is_undock_srv_triggered = False
         self.is_battery_stop_charge = False
-        self.state = UndockState.IDLE
         self.init_param()
         
+        battery_state_topic = rospy.get_param("/simple_autodock/battery_state_topic","/xnergy_charger_rcu/battery_state")
+        cmd_vel_topic = rospy.get_param("/simple_autodock/cmd_vel_topic","/kopilot_user_cmd")
+        self.undock_distance = rospy.get_param("/simple_autodock/undock_distance",0.5)
+        self.trigger_stop_charge_srv = rospy.get_param("/simple_autodock/trigger_stop_charge_srv","/xnergy_charger_rcu/trigger_stop")
+        self.retry_times = rospy.get_param("/simple_autodock/retry_count", 3)
+
         # Setup ros part
-        self.xnergy_state_sub = rospy.Subscriber(self.battery_state_topic, BatteryState, self.check_discharge)
-        self.cmd_kopilot_pub = rospy.Publisher(self.cmd_vel_topic, Twist, queue_size=10)
+        self.xnergy_state_sub = rospy.Subscriber(battery_state_topic, BatteryState, self.check_discharge)
+        self.cmd_kopilot_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=10)
         self.undock_service = rospy.Service('~trigger', Trigger, self.handle_undock_request)
         self.undock_status_pub = rospy.Publisher('~status', GoalStatusArray, queue_size=10)
         self.undock_cancel_sub = rospy.Subscriber('~cancel', GoalID, self.handle_undock_cancel)
@@ -34,12 +39,7 @@ class UndockExecutor:
     def init_param(self):
         self.retry_count = 1
         self.is_undock_srv_triggered = False
-        self.set_undock_state(UndockState.IDLE)
-        self.battery_state_topic = rospy.get_param("/simple_autodock/battery_state_topic","/xnergy_charger_rcu/battery_state")
-        self.cmd_vel_topic = rospy.get_param("/simple_autodock/cmd_vel_topic","/kopilot_user_cmd")
-        self.undock_distance = rospy.get_param("/simple_autodock/undock_distance",0.5)
-        self.trigger_stop_charge_srv = rospy.get_param("/simple_autodock/trigger_stop_charge_srv","/xnergy_charger_rcu/trigger_stop")
-        self.retry_times = rospy.get_param("/simple_autodock/retry_count", 3)
+        self.state = UndockState.IDLE
 
     def handle_undock_request(self, req):
         rospy.loginfo("Enable undocking")
@@ -139,6 +139,7 @@ class UndockStateMachine(UndockExecutor):
                     if self.retry_count > self.retry_times:
                         self.set_undock_state(UndockState.FAILED)
                         # init_param
+                        rospy.sleep(1)
                         self.init_param()
                         
             self.sleep_period.sleep()
@@ -156,8 +157,9 @@ class UndockStateMachine(UndockExecutor):
             rospy.loginfo("Waiting for charge to stop")
             rospy.sleep(1)
             wait_for_sec = wait_for_sec - 1
-            if self.state == UndockState.CANCELLED:
-                return False
+        if self.state == UndockState.CANCELLED:
+            return False
+
         if self.is_battery_stop_charge:
             rospy.loginfo("Successfully stop charging")
             return True
@@ -174,7 +176,7 @@ class UndockStateMachine(UndockExecutor):
         if _initial_tf is None:
             return False
         # get the tf mat from odom to goal frame
-        _goal_tf = utils.apply_2d_transform(_initial_tf, (0.5, 0, 0))
+        _goal_tf = utils.apply_2d_transform(_initial_tf, (self.undock_distance, 0, 0))
         action_success = None
         time_init = rospy.Time.now()
         _duration = 0
