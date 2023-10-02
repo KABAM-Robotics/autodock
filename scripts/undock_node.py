@@ -135,7 +135,7 @@ class UndockStateMachine(UndockExecutor):
                     self.init_param()
                 else:
                     self.retry_count += 1
-                    if self.retry_count > self.retry_count:
+                    if self.retry_count > self.retry_times:
                         self.set_undock_state(UndockState.FAILED)
                         # init_param
                         self.init_param()
