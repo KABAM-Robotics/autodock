@@ -91,8 +91,11 @@ class AutoDockServer:
         self.__tfBuffer = tf2_ros.Buffer(cache_time=rospy.Duration(5.0))
         self.__tf_listener = tf2_ros.TransformListener(self.__tfBuffer)
 
+        # create rosparam for dock cmd_vel topic name
+        __dock_cmd_vel_topic = rospy.get_param("~dock_cmd_vel_topic", "/cmd_vel")
+
         # create_publisher to cmd_vel
-        self.__cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
+        self.__cmd_vel_pub = rospy.Publisher(__dock_cmd_vel_topic, Twist, queue_size=5)
 
         # create_subscriber to pause dock
         rospy.Subscriber("/pause_dock", Bool, self.__pause_dock_cb)
