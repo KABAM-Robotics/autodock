@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install \
 
 # install osrf autodock
 RUN mkdir -p /root/catkin_ws/src && cd /root/catkin_ws/src  && \
-  git clone -b feature/rosparam-for-cmd-vel https://github.com/cognicept-admin/autodock
+  git clone https://github.com/cognicept-admin/autodock
 
 RUN rm -rf /root/catkin_ws/src/autodock/autodock_sim
 
@@ -34,4 +34,3 @@ RUN . /ros_entrypoint.sh && cd /root/catkin_ws && \
 
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
-#CMD roslaunch autodock_kabam halo.launch headless:=1 debug_mode:=False
