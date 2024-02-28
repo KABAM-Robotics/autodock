@@ -33,7 +33,6 @@ tf_expiry: 0.8             # sec
 controller_rate: 5.0       # hz
 dock_timeout: 220          # sec
 front_dock: false          # when false, robot dock from behind
-dock_cmd_vel_topic: "/cmd_mutex/dock"
 
 ##############################################################################
 # Predock State
