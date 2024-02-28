@@ -58,10 +58,4 @@
   <!-- Undock service-->
   <include file="$(find autodock_kabam)/launch/undock.launch" />
 
-  <!-- tf to place the camera to the correct tf frame -->
-  <node pkg="tf2_ros" 
-        type="static_transform_publisher"
-        name="cam_link_broadcaster"
-        args="-0.54 0 .2 3.14 0 0 base_link camera_dock_link"/>
-
 </launch>
