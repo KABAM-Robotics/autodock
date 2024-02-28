@@ -6,9 +6,11 @@
   <arg name="use_fake_clock" default="false"/>  <!-- Warning!! use this with caution, when time is off synced -->
   <arg name="autodock_server" default="true"/>
   <arg name="debug_mode" default="true" doc="Use this to have aruco detections always ON (publish fiducial images always) and other useful visualization markers. Turn OFF for better performance in deployment."/>
+  <arg name="dock_cmd_vel_topic" default="/cmd_mutex/dock"/>
 
   <!-- Launch AutoDock Server Node -->
   <group if="$(arg autodock_server)">
+    <remap from="/cmd_vel" to="$(arg dock_cmd_vel_topic)"/>
     <include file="$(find autodock_core)/launch/autodock_server.launch">
       <arg name="autodock_config" default="$(find autodock_kabam)/configs/autodock_config.yaml"/>
       <arg name="use_fake_clock" default="$(arg use_fake_clock)"/> <!-- Warning!! -->
