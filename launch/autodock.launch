@@ -1,14 +1,17 @@
 <?xml version="1.0"?>
 <launch>
 
-  <!-- Global param -->
-  <arg name="headless" default="true"/>
-  <arg name="use_fake_clock" default="false"/>  <!-- Warning!! use this with caution, when time is off synced -->
+  <!-- Autodocker server arguments -->
   <arg name="autodock_server" default="true"/>
-  <arg name="debug_mode" default="false" doc="Use this to have aruco detections always ON (publish fiducial images always) and other useful visualization markers. Turn OFF for better performance in deployment."/>
+  <arg name="autodock_config_file" default="autodock_config.yaml"/>
   <arg name="dock_cmd_vel_topic" default="/cmd_mutex/dock"/>
+  <arg name="debug_mode" default="false" doc="Use this to have aruco detections always ON (publish fiducial images always) and other useful visualization markers. Turn OFF for better performance in deployment."/>
+  <arg name="use_fake_clock" default="false"/>  <!-- Warning!! use this with caution, when time is off synced -->
 
-  <!-- Fiducial detection arguments -->
+  <!-- Fake clock arguments -->
+  <arg name="extract_frame_id" default="camera_dock_color_optical_frame"/>
+
+  <!-- Fiducial detect arguments -->
   <arg name="use_sim_time" default="false"/>
   <arg name="image_transport" default="compressed"/>
   <arg name="publish_images" default="true"/>
@@ -25,17 +28,21 @@
   <arg name="occupancy_prob" default="60"/>
   <arg name="base_link_name" default="base_link"/>
 
+  <!-- Rviz arguments -->
+  <arg name="headless" default="true"/>
+  <arg name="rviz_config" default="oscar.yaml"/>
+
   <!-- Launch AutoDock Server Node -->
   <group if="$(arg autodock_server)">
     <remap from="/cmd_vel" to="$(arg dock_cmd_vel_topic)"/>
     <include file="$(find autodock_core)/launch/autodock_server.launch">
-      <arg name="autodock_config" default="$(find autodock_kabam)/configs/autodock_config.yaml"/>
+      <arg name="autodock_config" default="$(find autodock_kabam)/configs/$(arg autodock_config_file)"/>
       <arg name="use_fake_clock" default="$(arg use_fake_clock)"/> <!-- Warning!! -->
       <arg name="debug_mode" value="$(arg debug_mode)"/>
     </include>
   </group>
 
-  <!-- launch fiducial detect  -->
+  <!-- Launch fiducial detect  -->
   <node pkg="aruco_detect" name="aruco_detect"
         type="aruco_detect" output="log" respawn="false">
     <param name="/use_sim_time" value="$(arg use_sim_time)"/>
@@ -54,12 +61,12 @@
   <group if="$(arg use_fake_clock)">
     <node type="camera_info_filter.py"
           name="camera_info_filter" pkg="autodock_kabam" output="screen">
-      <param name="extract_frame_id" value="camera_dock_color_optical_frame"/>
-      <remap from="camera_info" to="/camera_dock/color/camera_info"/>
+      <param name="extract_frame_id" value="$(arg extract_frame_id)"/>
+      <remap from="camera_info" to="$(arg camera_info_topic)"/>
     </node>
   </group>
 
-  <!-- obstacle observer node  -->
+  <!-- Obstacle observer node  -->
   <node type="obstacle_observer"
         name="obstacle_observer" pkg="autodock_core" output="screen">
     <param name="vicinity_radius" value="$(arg vicinity_radius)"/>
@@ -68,10 +75,10 @@
     <param name="base_link_name" value="$(arg base_link_name)"/>
   </node>
 
-  <!-- rviz viewer -->
+  <!-- Rviz viewer -->
   <group unless="$(arg headless)">
     <node type="rviz" name="rviz" pkg="rviz"
-      args="-d $(find autodock_kabam)/rviz/oscar.rviz" />
+      args="-d $(find autodock_kabam)/rviz/$(arg rviz_config)" />
   </group>
 
   <!-- Undock service-->
