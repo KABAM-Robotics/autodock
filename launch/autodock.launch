@@ -1,12 +1,29 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- Run on Halo robot -->
+
   <!-- Global param -->
   <arg name="headless" default="true"/>
   <arg name="use_fake_clock" default="false"/>  <!-- Warning!! use this with caution, when time is off synced -->
   <arg name="autodock_server" default="true"/>
   <arg name="debug_mode" default="false" doc="Use this to have aruco detections always ON (publish fiducial images always) and other useful visualization markers. Turn OFF for better performance in deployment."/>
   <arg name="dock_cmd_vel_topic" default="/cmd_mutex/dock"/>
+
+  <!-- Fiducial detection arguments -->
+  <arg name="use_sim_time" default="false"/>
+  <arg name="image_transport" default="compressed"/>
+  <arg name="publish_images" default="true"/>
+  <arg name="dictionary" default="8"/>
+  <arg name="do_pose_estimation" default="true"/>
+  <arg name="verbose" default="false"/>
+  <arg name="fiducial_len_override" default="10: 0.10, 11: 0.10, 20: 0.05"/>
+  <arg name="camera_topic" default="/camera_dock/color/image_raw/compressed"/>
+  <arg name="camera_info_topic" default="/camera_dock/color/camera_info"/>
+
+  <!-- Obstacle observer arguments -->
+  <arg name="vicinity_radius" default="0.4"/>
+  <arg name="coverage_percent" default="0.12"/>
+  <arg name="occupancy_prob" default="60"/>
+  <arg name="base_link_name" default="base_link"/>
 
   <!-- Launch AutoDock Server Node -->
   <group if="$(arg autodock_server)">
@@ -21,15 +38,15 @@
   <!-- launch fiducial detect  -->
   <node pkg="aruco_detect" name="aruco_detect"
         type="aruco_detect" output="log" respawn="false">
-    <param name="/use_sim_time" value="false"/>
-    <param name="image_transport" value="compressed"/>
-    <param name="publish_images" value="true" />
-    <param name="dictionary" value="8"/>
-    <param name="do_pose_estimation" value="true"/>
-    <param name="verbose" value="false"/>
-    <param name="fiducial_len_override" value="10: 0.10, 11: 0.10, 20: 0.05"/>
-    <remap from="camera/compressed" to="/camera_dock/color/image_raw/compressed"/>
-    <remap from="camera_info" to="/camera_dock/color/camera_info"/>
+    <param name="/use_sim_time" value="$(arg use_sim_time)"/>
+    <param name="image_transport" value="$(arg image_transport)"/>
+    <param name="publish_images" value="$(arg publish_images)" />
+    <param name="dictionary" value="$(arg dictionary)"/>
+    <param name="do_pose_estimation" value="$(arg do_pose_estimation)"/>
+    <param name="verbose" value="$(arg verbose)"/>
+    <param name="fiducial_len_override" value="$(arg fiducial_len_override)"/>
+    <remap from="camera/compressed" to="$(arg camera_topic)"/>
+    <remap from="camera_info" to="$(arg camera_info_topic)"/>
   </node>
 
   <!-- WARN!!! Default off. This hack is to publish the fake /clock time,
@@ -45,10 +62,10 @@
   <!-- obstacle observer node  -->
   <node type="obstacle_observer"
         name="obstacle_observer" pkg="autodock_core" output="screen">
-    <param name="vicinity_radius" value="0.4"/>
-    <param name="coverage_percent" value="0.12"/>
-    <param name="occupancy_prob" value="60"/>
-    <param name="base_link_name" value="base_link"/>
+    <param name="vicinity_radius" value="$(arg vicinity_radius)"/>
+    <param name="coverage_percent" value="$(arg coverage_percent)"/>
+    <param name="occupancy_prob" value="$(arg occupancy_prob)"/>
+    <param name="base_link_name" value="$(arg base_link_name)"/>
   </node>
 
   <!-- rviz viewer -->
