@@ -28,6 +28,7 @@ class UndockExecutor:
         self.undock_distance = rospy.get_param("/simple_autodock/undock_distance",0.5)
         self.trigger_stop_charge_srv = rospy.get_param("/simple_autodock/trigger_stop_charge_srv","/xnergy_charger_rcu/trigger_stop")
         self.retry_times = rospy.get_param("/simple_autodock/retry_count", 3)
+        self.enable_stop_charge = rospy.get_param("/simple_autodock/enable_stop_charge", True)
 
         # Setup ros part
         self.xnergy_state_sub = rospy.Subscriber(battery_state_topic, BatteryState, self.check_discharge)
@@ -145,9 +146,13 @@ class UndockStateMachine(UndockExecutor):
             self.sleep_period.sleep()
 
     def do_discharge(self):
+        # If enable_stop_charge param is set to false, skip discharge task
         # This function should monitor first trigger # Trigger /xnergy_charger_rcu/trigger_stop
         # wait until the the batteryState to uint8 POWER_SUPPLY_STATUS_NOT_CHARGING = 3
         # Or fail when Battery state is not in NOT_CHARGING state for more than 20 seconds.
+        if not self.enable_stop_charge:
+            rospy.loginfo("Skipping stop charging, enable_stop_charge is set to false")
+            return True
         rospy.loginfo("Do Stop Charging")
         self.trigger_discharge()
         wait_for_sec = 20
