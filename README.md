@@ -49,3 +49,15 @@ in front of the charger and dock it repeatedly.
 # indicate charging station srv name with -cs
 rosrun autodock_examples dock_robot_test.py -c 10 -cs /xnergy_charger_rcu/trigger_charging
 ```
+
+## Version History
+
+### v5.1.0 [2024-09-20]
+- Added the parameter `enable_stop_charge` to enable and disable the stop charging service before undocking, specifically for use with the Hzi Hertz charger
+
+### v5.0.0 [2024-03-11]
+- Added a generic `autodock_config.yaml` file instead of using the old oscar.yaml
+- Added a new launch file `autodock.launch` to pass in the config file `autodock_config.yaml`
+- Remapped `/cmd_vel` ROS topic name to `/cmd_mutex/dock`
+- Removed the static tf publisher because it should be published by the camera not by the autodocking package
+- Added a new Dockerfile which is the same as the existing Dockerfile_Oscar but with roslaunch command removed
