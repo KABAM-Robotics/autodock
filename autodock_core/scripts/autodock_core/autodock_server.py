@@ -141,7 +141,7 @@ class AutoDockServer:
         :param printout:    Verbose description of the state
         """
         state_str = DockState.to_string(state)
-        rospy.logwarn(f" State: [{state_str}] | {printout}")
+        rospy.logwarn(f"State: [{state_str}] | {printout}")
         self.dock_state = state
         if self.run_server:
             self.feedback_msg.state = state
@@ -161,7 +161,7 @@ class AutoDockServer:
 
         # check if dock_timeout reaches
         if (rospy.Time.now() - self.start_time).secs > self.cfg.dock_timeout:
-            rospy.logwarn('Timeout reaches!')
+            rospy.logwarn('Timeout reached!')
             self.set_state(self.dock_state, "Reach Timeout")
             return True
         return False
