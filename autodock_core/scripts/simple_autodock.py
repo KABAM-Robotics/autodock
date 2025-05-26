@@ -281,10 +281,12 @@ class AutoDockStateMachine(AutoDockServer):
         if self.get_centre_of_side_markers() is None:
             if not self.do_single_side_marker_rotate():
                 return False
+            rospy.loginfo("Single marker is detected, running predock loop")
+        else:
+            rospy.loginfo("Both markers are detected, running predock loop")
 
         # start predock loop
         _pose_list = []
-        rospy.loginfo("Both Markers are detected, running predock loop")
         while not rospy.is_shutdown():
             if self.check_cancel():
                 return False
