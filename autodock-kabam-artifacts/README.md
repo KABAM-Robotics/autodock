@@ -52,11 +52,12 @@ rosrun autodock_examples dock_robot_test.py -c 10 -cs /xnergy_charger_rcu/trigge
 
 ## Version History
 
-### v5.2.0 [2025-05-22]
+### v5.2.0 [2025-05-26]
 - Merged from Bitbucket repository into GitHub repository
 - Added Static TF launch file for dock camera
 - Added launch file for static TF with autodocking
 - Build Docker image from `Dockerfile` inside autodock-kabam-artifacts for autodock and undock, `autodock_v5.2.0` image is built from this Dockerfile
+- Fix logging bug where it says that both markers are detected when it can be only 1 marker detected
 
 ### v5.1.0 [2024-09-20]
 - Added the parameter `enable_stop_charge` to enable and disable the stop charging service before undocking, specifically for use with the Hzi Hertz charger
