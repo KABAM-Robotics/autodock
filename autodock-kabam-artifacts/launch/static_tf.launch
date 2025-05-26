@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="tf_args" default="-0.54 0 0.2 3.14 0 0 base_link camera_dock_link"/>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="camera_dock_tf" args="$(arg tf_args)"/>
+
+</launch>

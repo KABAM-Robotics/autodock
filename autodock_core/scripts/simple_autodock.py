@@ -281,10 +281,12 @@ class AutoDockStateMachine(AutoDockServer):
         if self.get_centre_of_side_markers() is None:
             if not self.do_single_side_marker_rotate():
                 return False
+            rospy.loginfo("Single marker is detected, running predock loop")
+        else:
+            rospy.loginfo("Both markers are detected, running predock loop")
 
         # start predock loop
         _pose_list = []
-        rospy.loginfo("Both Markers are detected, running predock loop")
         while not rospy.is_shutdown():
             if self.check_cancel():
                 return False
@@ -397,7 +399,7 @@ class AutoDockStateMachine(AutoDockServer):
                 self.publish_cmd()
                 return True
 
-            print(f"  DETECTED both side markers!! "
+            print(f"DETECTED both side markers!!"
                   f"[d: {dis:.2f}, offset: {offset:.2f}]")
 
             ang_vel = utils.sat_proportional_filter(
@@ -436,7 +438,7 @@ class AutoDockStateMachine(AutoDockServer):
                     return self.move_with_odom(_dir*remaining_dis)
                 else:
                     rospy.logerr("exceeded max_last_mile_odom with "
-                                 "remaining dis of {remaining_dis}, exit!")
+                                 f"remaining dis of {remaining_dis}, exit!")
                     return False
 
             centre_tf = utils.get_2d_pose(centre_tf_mat)
@@ -496,7 +498,7 @@ class AutoDockStateMachine(AutoDockServer):
                     rospy.sleep(rospy.Duration(1.0))
                     if ((rospy.Time.now() - start).secs >
                             self.cfg.check_battery_timeout):
-                        rospy.logerr("time out for check battery!")
+                        rospy.logerr("Time out for battery check!")
                         return False
                 rospy.loginfo("Battery is now Charging!")
             except rospy.exceptions.ROSException:

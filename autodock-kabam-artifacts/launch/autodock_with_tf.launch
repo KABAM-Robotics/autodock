@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <!-- Autodocker server arguments -->
+  <arg name="autodock_config_file" default="autodock_config.yaml"/>
+  <arg name="dock_cmd_vel_topic" default="/cmd_mutex/dock"/>
+
+  <!-- Obstacle observer arguments -->
+  <arg name="vicinity_radius" default="0.4"/>
+  <arg name="coverage_percent" default="0.12"/>
+  <arg name="occupancy_prob" default="60"/>
+  <arg name="base_link_name" default="base_link"/>
+
+  <!-- Aruco marker detection arguments -->
+  <arg name="use_sim_time" default="false"/>
+  <arg name="image_transport" default="compressed"/>
+  <arg name="publish_images" default="true"/>
+  <arg name="dictionary" default="8"/>
+  <arg name="do_pose_estimation" default="true"/>
+  <arg name="verbose" default="false"/>
+  <arg name="fiducial_len_override" default="10: 0.10, 11: 0.10, 20: 0.05"/>
+  <arg name="camera_topic" default="/camera_dock/color/image_raw/compressed"/>
+  <arg name="camera_info_topic" default="/camera_dock/color/camera_info"/>
+
+  <!-- Static TF arguments -->
+  <arg name="tf_args" default="-0.54 0 0.2 3.14 0 0 $(arg base_link_name) camera_dock_link"/>
+
+  <!-- Static TF launch file -->
+  <include file="$(find autodock_kabam)/launch/static_tf.launch">
+    <arg name="tf_args" value="$(arg tf_args)"/>
+  </include>
+
+  <!-- Autodock server launch file -->
+  <include file="$(find autodock_kabam)/launch/autodock.launch">
+    <arg name="autodock_config_file" value="$(arg autodock_config_file)"/>
+    <arg name="dock_cmd_vel_topic" value="$(arg dock_cmd_vel_topic)"/>
+
+    <arg name="vicinity_radius" value="$(arg vicinity_radius)"/>
+    <arg name="coverage_percent" value="$(arg coverage_percent)"/>
+    <arg name="occupancy_prob" value="$(arg occupancy_prob)"/>
+    <arg name="base_link_name" value="$(arg base_link_name)"/>
+
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="image_transport" value="$(arg image_transport)"/>
+    <arg name="publish_images" value="$(arg publish_images)"/>
+    <arg name="dictionary" value="$(arg dictionary)"/>
+    <arg name="do_pose_estimation" value="$(arg do_pose_estimation)"/>
+    <arg name="verbose" value="$(arg verbose)"/>
+    <arg name="fiducial_len_override" value="$(arg fiducial_len_override)"/>
+    <arg name="camera_topic" value="$(arg camera_topic)"/>
+    <arg name="camera_info_topic" value="$(arg camera_info_topic)"/>
+  </include>
+
+</launch>
